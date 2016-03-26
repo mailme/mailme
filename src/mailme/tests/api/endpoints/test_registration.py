@@ -1,3 +1,4 @@
+import mock
 import pytest
 from django.core.urlresolvers import reverse
 
@@ -18,7 +19,11 @@ class TestRegistration:
 
         assert response.status_code == 201
         assert response.json() == {
-            'username': 'testuser',
+            'user': {
+                'username': 'testuser',
+                'name': None,
+            },
+            'token': mock.ANY,
         }
         assert User.objects.filter(username='testuser').exists()
 
