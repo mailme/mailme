@@ -1,0 +1,10 @@
+[run]
+branch = True
+source = src/mailme/
+include = src/mailme*
+omit =
+    src/mailme/conf/*.py
+    src/mailme/settings.py
+    *urls.py
+    src/mailme/wsgi.py
+    *migrations*

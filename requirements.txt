@@ -1,0 +1,5 @@
+-e .
+-e .[docs]
+-e .[tests]
+-e .[postgresql]
+-e .[redis]

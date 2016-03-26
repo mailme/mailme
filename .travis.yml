@@ -1,0 +1,36 @@
+language: python
+python:
+  - '3.5'
+sudo: false
+
+addons:
+  postgresql: '9.4'
+
+services:
+  - memcached
+  - redis-server
+
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip/
+
+env:
+  global:
+    - DJANGO_SETTINGS_MODULE="mailme.conf.travis"
+    - MAILME_TEST_DB_NAME=mailme_test
+    - MAILME_TEST_DB_USER=travis
+
+before_install:
+  - openssl version
+  - psql --version
+
+install:
+  - make develop
+
+before_script:
+  - psql -c 'create database mailme_test;' -U postgres
+
+script:
+  - make test
+  - make lint
