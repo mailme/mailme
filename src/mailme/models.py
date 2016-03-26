@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, UserManager
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -26,6 +26,8 @@ class User(MailmeModel, AbstractBaseUser):
         _('superuser status'), default=False,
         help_text=_('Designates that this user has all permissions without '
                     'explicitly assigning them.'))
+
+    objects = UserManager()
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
