@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import jwt
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 JWT_OPTIONS = {
@@ -16,7 +17,9 @@ JWT_OPTIONS = {
 }
 
 LEEWAY = 10
-EXPIRATION_DELTA = timedelta(seconds=60)
+
+# TODO: make configurable
+EXPIRATION_DELTA = timedelta(days=6)
 
 
 def decode_token(token, user):
@@ -32,7 +35,7 @@ def decode_token(token, user):
     )
 
 
-def encode_token(user_id, private_key):
+def encode_token(user_id):
     issued_at = datetime.utcnow()
     payload = {
         'iss': user_id,
@@ -44,5 +47,6 @@ def encode_token(user_id, private_key):
     return jwt.encode(
         payload,
         key=settings.SECRET_KEY,
-        algorithm='HS256'
+        algorithm='HS256',
+        json_encoder=DjangoJSONEncoder,
     ).decode('utf-8')
