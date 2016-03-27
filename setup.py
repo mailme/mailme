@@ -50,6 +50,9 @@ install_requires = [
 
     # For proper timezone support.
     'pytz==2016.1',
+
+    # Charset detection
+    'chardet==2.3.0'
 ]
 
 
