@@ -7,7 +7,6 @@ addons:
   postgresql: '9.4'
 
 services:
-  - memcached
   - redis-server
 
 cache:
@@ -22,7 +21,6 @@ env:
     - MAILME_TEST_DB_USER=travis
 
 before_install:
-  - openssl version
   - psql --version
 
 install:
