@@ -3,9 +3,13 @@ from django.contrib.auth.models import AbstractBaseUser, UserManager
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.utils.functional import cached_property
 
 from mailme.utils.avatar import get_profile_image
 from mailme.utils.db import MailmeModel
+from mailme.utils.uri import parse_uri
+
+from .transports.imap import ImapTransport
 
 
 class User(MailmeModel, AbstractBaseUser):
@@ -57,3 +61,91 @@ class User(MailmeModel, AbstractBaseUser):
     @property
     def profile_image(self):
         return get_profile_image(self)
+
+
+ALLOWED_MIMETYPES = {'text/plain', 'text/html'}
+
+
+class Mailbox(models.Model):
+    name = models.CharField(
+        _(u'Name'),
+        max_length=256,
+    )
+
+    uri = models.CharField(
+        _(u'URI'),
+        max_length=256,
+        help_text=(_(
+            'Example: imap+ssl://myusername:mypassword@someserver'
+        )),
+        blank=True,
+        null=True,
+        default=None,
+    )
+
+    from_email = models.CharField(
+        _(u'From email'),
+        max_length=255,
+        blank=True,
+        null=True,
+        default=None,
+    )
+
+    active = models.BooleanField(
+        _(u'Active'),
+        blank=True,
+        default=True,
+    )
+
+    objects = models.Manager()
+
+    @cached_property
+    def parsed_uri(self):
+        return parse_uri(self.uri)
+
+    def get_connection(self):
+        """Returns the transport instance for this mailbox."""
+        if not self.uri:
+            return None
+
+        uri = self.parsed_uri
+
+        if uri.scheme == 'imap':
+            conn = ImapTransport(
+                uri.location,
+                port=uri.port if uri.port else None,
+                ssl=uri.use_ssl,
+            )
+            conn.connect(uri.username, uri.password)
+        return conn
+
+    def get_new_mail(self, condition=None, folder=None):
+        """Connect to this transport and fetch new messages."""
+        new_mail = []
+        connection = self.get_connection()
+        if not connection:
+            return new_mail
+
+        messages = connection.get_messages(condition=condition, folder=folder)
+
+        for message in messages:
+            new_mail.append(Message(subject=message))
+
+        return new_mail
+
+    def __str__(self):
+        return self.name
+
+
+class Message(models.Model):
+    mailbox = models.ForeignKey(Mailbox, related_name='messages')
+    subject = models.CharField(
+        _(u'Subject'),
+        max_length=255
+    )
+
+    def __str__(self):
+        return self.subject
+
+    def __repr__(self):
+        return '<Message({})>'.format(self.subject)
