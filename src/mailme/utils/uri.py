@@ -7,6 +7,7 @@ URI = namedtuple('URI', (
     'location', 'scheme', 'use_ssl'
 ))
 
+
 def parse_uri(uri):
     protocol_info = urlparse(uri)
     scheme = protocol_info.scheme.lower()
