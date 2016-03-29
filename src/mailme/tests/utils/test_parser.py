@@ -6,6 +6,34 @@ from django.conf import settings
 from mailme.utils.parser import parse_email, get_mail_addresses
 
 
+# TODO
+# Reply-To :  Sam.Irving@Reg.Organization
+# To       :  George Jones <Group@Some-Reg.An-Org>,
+#             Al.Neuman@MAD.Publisher
+# cc       :  Important folk:
+#               Tom Softwood <Balsa@Tree.Root>,
+#               "Sam Irving"@Other-Host;,
+#             Standard Distribution:
+#               /main/davis/people/standard@Other-Host,
+#               "<Jones>standard.dist.3"@Tops-20-Host>;
+# Comment  :  Sam is away on business. He asked me to handle
+#             his mail for him.  He'll be able to provide  a
+#             more  accurate  explanation  when  he  returns
+#             next week.
+# In-Reply-To: <some.string@DBM.Group>, George's message
+
+# TODO (already works, needs tests):
+# In [4]: parsedate_to_datetime("Mon, 20 Nov 1995 19:12:08 -0500")
+# Out[4]: datetime.datetime(
+#   1995, 11, 20, 19, 12, 8, tzinfo=datetime.timezone(datetime.timedelta(-1, 68400)))
+
+# In [5]: parsedate_to_datetime("Mon, 20 Nov 1995 19:12:08")
+# Out[5]: datetime.datetime(1995, 11, 20, 19, 12, 8)
+
+# In [6]: parsedate_to_datetime("Mon, 20 Nov 1995 19:12:08 -0000")
+# Out[6]: datetime.datetime(1995, 11, 20, 19, 12, 8)
+
+
 class TestParser:
 
     def open_mail(self, name):
