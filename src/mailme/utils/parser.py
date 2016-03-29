@@ -4,8 +4,6 @@ import re
 import email
 import base64
 import quopri
-import time
-from datetime import datetime
 from email.header import decode_header
 
 import chardet
@@ -180,21 +178,17 @@ def parse_email(raw_email):
         'content-type'
     }
 
-    parsed_email['headers'] = []
-    for key, value in email_dict.items():
+    parsed_email['headers'] = {}
 
+    for key, value in email_dict.items():
         if key.lower() in value_headers_keys:
             valid_key_name = key.lower().replace('-', '_')
             parsed_email[valid_key_name] = decode_mail_header(value)
 
         if key.lower() in key_value_header_keys:
-            parsed_email['headers'].append(
-                {'Name': key, 'Value': value}
-            )
+            parsed_email['headers'][key.lower()] = value
 
     if parsed_email.get('date'):
-        timetuple = email.utils.parsedate(parsed_email['date'])
-        parsed_date = datetime.fromtimestamp(time.mktime(timetuple)) if timetuple else None
-        parsed_email['parsed_date'] = parsed_date
+        parsed_email['parsed_date'] = email.utils.parsedate_to_datetime(parsed_email['date'])
 
     return parsed_email
