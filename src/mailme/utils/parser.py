@@ -130,7 +130,7 @@ def parse_email(raw_email):
     message = email.message_from_string(raw_email)
     maintype = message.get_content_maintype()
 
-    parsed_email = {'raw_email': raw_email}
+    parsed_email = {'original': raw_email}
 
     body = {
         'plain': [],

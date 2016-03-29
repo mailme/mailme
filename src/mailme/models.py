@@ -67,35 +67,18 @@ ALLOWED_MIMETYPES = {'text/plain', 'text/html'}
 
 
 class Mailbox(models.Model):
-    name = models.CharField(
-        _(u'Name'),
-        max_length=256,
-    )
+    name = models.CharField(_(u'Name'), max_length=256)
 
     uri = models.CharField(
-        _(u'URI'),
-        max_length=256,
-        help_text=(_(
-            'Example: imap+ssl://myusername:mypassword@someserver'
-        )),
-        blank=True,
-        null=True,
-        default=None,
-    )
+        _(u'URI'), max_length=256,
+        help_text=(_('Example: imap+ssl://myusername:mypassword@someserver')),
+        blank=True, null=True, default=None)
 
     from_email = models.CharField(
-        _(u'From email'),
-        max_length=255,
-        blank=True,
-        null=True,
-        default=None,
-    )
+        _(u'From email'), max_length=255,
+        blank=True, null=True, default=None)
 
-    active = models.BooleanField(
-        _(u'Active'),
-        blank=True,
-        default=True,
-    )
+    active = models.BooleanField(_(u'Active'), blank=True, default=True)
 
     objects = models.Manager()
 

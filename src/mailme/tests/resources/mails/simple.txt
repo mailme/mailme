@@ -1,0 +1,31 @@
+Delivered-To: johndoe@gmail.com
+X-Originating-Email: [martin@amon.cx]
+Message-ID: <test0@example.com>
+Return-Path: martin@amon.cx
+Date: Tue, 30 Jul 2013 15:56:29 +0300
+From: Martin Rusev <martin@amon.cx>
+MIME-Version: 1.0
+To: John Doe <johndoe@gmail.com>
+Subject: Test email - no attachment
+Content-Type: multipart/alternative;
+    boundary="------------080505090108000500080106"
+X-OriginalArrivalTime: 30 Jul 2013 12:56:43.0604 (UTC) FILETIME=[3DD52140:01CE8D24]
+
+--------------080505090108000500080106
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hi, this is a test email with no attachments
+
+--------------080505090108000500080106
+Content-Type: text/html; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"></head><body
+ bgcolor="#FFFFFF" text="#000000">
+Hi, this is a test email with no <span style="font-weight: bold;">attachments</span><br>
+</body>
+</html>
+
+--------------080505090108000500080106--
