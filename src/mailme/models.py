@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import pytz
+
 from django.contrib.auth.models import AbstractBaseUser, UserManager
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -68,6 +71,7 @@ ALLOWED_MIMETYPES = {'text/plain', 'text/html'}
 
 class Mailbox(models.Model):
     name = models.CharField(_(u'Name'), max_length=256)
+    user = models.ForeignKey(User)
 
     uri = models.CharField(
         _(u'URI'), max_length=256,
@@ -102,7 +106,7 @@ class Mailbox(models.Model):
             conn.connect(uri.username, uri.password)
         return conn
 
-    def get_new_mail(self, condition=None, folder=None):
+    def sync(self, condition=None, folder=None):
         """Connect to this transport and fetch new messages."""
         new_mail = []
         connection = self.get_connection()
@@ -111,8 +115,32 @@ class Mailbox(models.Model):
 
         messages = connection.get_messages(condition=condition, folder=folder)
 
+        # TODO:
+        # * handle attachments
+        # * normalize html
+
         for message in messages:
-            new_mail.append(Message(subject=message))
+            date = message['parsed_date']
+
+            if timezone.is_naive(date):
+                # If no timezone is given, UTC should be used
+                date = timezone.make_aware(date, pytz.UTC)
+
+            new_mail.append(Message(
+                message_id=message['message_id'],
+                original=message['original'],
+                date=date,
+                subject=message['subject'],
+                plain_body=message['body']['plain'],
+                html_body=message['body']['html'],
+                sent_from=message['sent_from'],
+                to=message['sent_to'],
+                bcc=message['bcc'],
+                cc=message['cc'],
+                headers=message['headers'],
+            ))
+
+        Message.objects.bulk_create(new_mail)
 
         return new_mail
 
@@ -120,12 +148,42 @@ class Mailbox(models.Model):
         return self.name
 
 
+class Thread(models.Model):
+    mailbox = models.ForeignKey(Mailbox, related_name='threads')
+    subject = models.CharField(max_length=256)
+
+    # TODO:
+    # * read (boolean, wether there are messages in the thread that are unread)
+    # * starred (flagged)
+    # * folders
+
+
 class Message(models.Model):
-    mailbox = models.ForeignKey(Mailbox, related_name='messages')
-    subject = models.CharField(
-        _(u'Subject'),
-        max_length=255
-    )
+    thread = models.ForeignKey(Thread, related_name='messages')
+
+    from_address = JSONField(_('Sent from'), blank=True, default=[])
+    to_address = JSONField(_('Sent to'), blank=True, default=[])
+    cc_address = JSONField(_('CC'), blank=True, default=[])
+    bcc_address = JSONField(_('BCC'), blank=True, default=[])
+    reply_to = JSONField(_('Reply-To'), blank=True, null=True)
+    in_reply_to = JSONField(_('In reply to'), blank=True, null=True)
+
+    headers = JSONField(_('Headers'), blank=True, default={})
+    subject = models.CharField(_('Subject'), max_length=255)
+    original = models.TextField(_('Original (raw) text'))
+    plain_body = models.TextField(_('Text'), blank=True)
+    html_body = models.TextField(_('HTML'), blank=True)
+    date = models.DateTimeField(_('Date'), blank=True)
+
+    # From: http://tools.ietf.org/html/rfc4130, section 5.3.3,
+    # max message_id_header is 998 characters
+    message_id = models.CharField(max_length=998)
+    references = JSONField(_('References'), blank=True, null=True)
+
+    # TODO:
+    # * attachments
+    # * read
+    # * starred (flagged)
 
     def __str__(self):
         return self.subject
