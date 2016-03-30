@@ -167,8 +167,8 @@ def parse_email(raw_email):
     parsed_email['body'] = body
     email_dict = dict(message.items())
 
-    parsed_email['sent_from'] = get_mail_addresses(message, 'from')
-    parsed_email['sent_to'] = get_mail_addresses(message, 'to')
+    parsed_email['from'] = get_mail_addresses(message, 'from')
+    parsed_email['to'] = get_mail_addresses(message, 'to')
     parsed_email['cc'] = get_mail_addresses(message, 'cc')
     parsed_email['bcc'] = get_mail_addresses(message, 'bcc')
 
