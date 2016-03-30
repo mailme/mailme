@@ -1,7 +1,6 @@
 import os
 import email
 
-import pytest
 from django.conf import settings
 
 from mailme.utils.parser import parse_email, get_mail_addresses
