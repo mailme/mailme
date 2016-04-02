@@ -1,6 +1,7 @@
 # Partially copied from nylas/sync-engine with some custom fixes
 import re
 
+import dns
 from dns.resolver import Resolver
 from dns.resolver import NoNameservers, NXDOMAIN, Timeout, NoAnswer
 

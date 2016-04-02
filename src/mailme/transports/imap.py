@@ -1,5 +1,4 @@
 from collections import namedtuple, defaultdict
-from email.errors import MessageParseError
 
 from django.db.models import Max
 from imapclient import IMAPClient
@@ -47,14 +46,11 @@ class ImapTransport(EmailTransport):
                 .filter(folder__name=folder)
                 .aggregate(max_uid=Max('uid'))['max_uid'] or 0)
 
-            remote_uidnext = self.server.folder_status(
-                folder,
-                ['UIDNEXT']
-            ).get('UIDNEXT')
+            folder_status = self.server.folder_status(folder, ['UIDNEXT', 'UIDVALIDITY'])
 
             new_messages = self.server.fetch('{}:*'.format(lastseenuid + 1), ['UID'])
 
-            print(new_messages)
+            print(folder_status, new_messages)
 
         # tag2 UID FETCH 1:<lastseenuid> FLAGS
 
