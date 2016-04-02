@@ -1,94 +1,66 @@
-import imaplib
+from collections import namedtuple
 from email.errors import MessageParseError
 
+from django.db.models import Max
+from imapclient import IMAPClient
+
 from .base import EmailTransport
+from mailme.constants import DEFAULT_FOLDER_FLAGS, DEFAULT_FOLDER_MAPPING
+from mailme.providers import get_provider_info
 
 
-# By default, imaplib will raise an exception if it encounters more
-# than 10k bytes; sometimes users attempt to consume mailboxes that
-# have a more, and modern computers are skookum-enough to handle just
-# a *few* more messages without causing any sort of problem.
-imaplib._MAXLINE = 1000000
-imaplib.Debug = 4
+DEFAULT_POLL_FREQUENCY = 30
+
+ImapFolder = namedtuple('ImapFolder', ('name', 'role'))
 
 
 class ImapTransport(EmailTransport):
-    max_message_size = None
+    def __init__(self, uri, provider):
+        self.uri = uri
+        self.provider_info = get_provider_info(provider)
+        self._server = None
 
-    def __init__(self, hostname, port=None, ssl=False):
-        self.hostname = hostname
-        self.port = port
+    def connect(self):
+        server = IMAPClient(self.uri.location, use_uid=True, ssl=self.uri.use_ssl)
+        server.login(self.uri.username, self.uri.password)
+        return server
 
-        if ssl:
-            self.transport = imaplib.IMAP4_SSL
-            if not self.port:
-                self.port = 993
-        else:
-            self.transport = imaplib.IMAP4
-            if not self.port:
-                self.port = 143
+    @property
+    def server(self):
+        if self._server is None:
+            self._server = self.connect()
+        return self._server
 
-    def connect(self, username, password):
-        self.connection = self.transport(self.hostname, self.port)
-        typ, msg = self.connection.login(username, password)
+    def get_new_uids(self):
+        lastseenuid = Message.objects.aggregate(max_uid=Max('uid'))['max_uid'] or 0
 
-        self.connection.select()
-
-    def _get_all_message_ids(self, **query):
-        query = self.build_search_query(**query)
-
-        # Fetch all the message uids
-        response, message_ids = self.connection.uid('search', None, query)
-        message_id_string = message_ids[0].strip()
-
-        # Usually `message_id_string` will be a list of space-separated
-        # ids; we must make sure that it isn't an empty string before
-        # splitting into individual UIDs.
-        if message_id_string:
-            return message_id_string.decode().split(' ')
-        return []
-
-    def get_messages(self, condition=None, folder=None, **query):
-        message_ids = self._get_all_message_ids(**query)
-
-        if not message_ids:
-            return
-
-        for uid in message_ids:
-            try:
-                message, data = self.connection.uid('fetch', uid, '(BODY.PEEK[])')
-                raw_email = data[0][1]
-
-                if not raw_email:
-                    continue
-
-                yield self.get_email_from_bytes(raw_email)
-            except MessageParseError:
-                continue
-        return
+        new_messages = self.server.fetch('{}:*'.format(lastseenuid + 1), ['UID'])
+        # tag2 UID FETCH 1:<lastseenuid> FLAGS
 
     def folders(self):
-        return self.connection.list()
+        """Fetch the list of folders for the account from the remote."""
+        ignore = {'\\Noselect', '\\NoSelect', '\\NonExistent'}
+        provider_map = self.provider_info.get('folder_map', {})
+        _folder_list = self.server.list_folders()
 
-    def build_search_query(self, **kwargs):
-        mapping = {
-            'sent_from': '(FROM "{}")',
-            'sent_to': '(TO "{}")',
-            'subject': '(SUBJECT "{}")'
-        }
+        retval = []
 
-        query = []
+        for flags, delimiter, name in _folder_list:
+            if name in ignore:
+                # Special folders that can't contain messages
+                continue
 
-        if kwargs.pop('unread', False):
-            query.append('(UNSEEN)')
+            role = DEFAULT_FOLDER_MAPPING.get(name.lower(), None)
 
-        for key, value in mapping.items():
-            search_string = kwargs.pop(key, None)
+            if role is None:
+                role = provider_map.get(name, None)
 
-            if search_string:
-                query.append(value.format(search_string))
+            if role is None:
+                # Try to figure out the correct folder by looking
+                # into flags
+                for flag in flags:
+                    role = DEFAULT_FOLDER_FLAGS.get(flag)
 
-        if query:
-            return ' '.join(query)
+            retval.append(ImapFolder(name=name, role=role))
 
-        return '(ALL)'
+        return retval

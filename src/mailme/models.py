@@ -8,11 +8,10 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import cached_property
 
+from mailme.providers import provider_from_address
 from mailme.utils.avatar import get_profile_image
 from mailme.utils.db import MailmeModel
 from mailme.utils.uri import parse_uri
-
-from .transports.imap import ImapTransport
 
 
 class User(MailmeModel, AbstractBaseUser):
@@ -69,6 +68,21 @@ class User(MailmeModel, AbstractBaseUser):
 ALLOWED_MIMETYPES = {'text/plain', 'text/html'}
 
 
+class MailboxFolder(models.Model):
+    """Represents a folder in a mailbox.
+
+    This is used purely for syncing purposes, we do store folders
+    as flags on messages but don't represent a regular imap mailbox.
+    """
+    mailbox = models.ForeignKey('Mailbox', related_name='folders')
+    name = models.CharField(_('Folder name'), max_length=256)
+
+    # Imap sync related
+    uidvalidity = models.BigIntegerField()
+    highestmodseq = models.BigIntegerField(null=True, blank=True)
+    uidnext = models.PositiveIntegerField(null=True, blank=True)
+
+
 class Mailbox(models.Model):
     name = models.CharField(_(u'Name'), max_length=256)
     user = models.ForeignKey(User)
@@ -77,6 +91,9 @@ class Mailbox(models.Model):
         _(u'URI'), max_length=256,
         help_text=(_('Example: imap+ssl://myusername:mypassword@someserver')),
         blank=True, null=True, default=None)
+
+    provider = models.CharField(
+        _('Provider'), max_length=256, null=True, blank=True)
 
     from_email = models.CharField(
         _(u'From email'), max_length=255,
@@ -90,18 +107,27 @@ class Mailbox(models.Model):
     def parsed_uri(self):
         return parse_uri(self.uri)
 
+    def get_provider(self, email):
+        try:
+            return provider_from_address(email)
+        except KeyError:
+            return None
+
     def get_connection(self):
         """Returns the transport instance for this mailbox."""
         if not self.uri:
             return None
+
+        # Circular imports
+        from .transports.imap import ImapTransport
 
         uri = self.parsed_uri
 
         if uri.scheme == 'imap':
             conn = ImapTransport(
                 uri.location,
-                port=uri.port if uri.port else None,
                 ssl=uri.use_ssl,
+                provider=self.provider
             )
             conn.connect(uri.username, uri.password)
         return conn
@@ -179,6 +205,9 @@ class Message(models.Model):
     # max message_id_header is 998 characters
     message_id = models.CharField(max_length=998)
     references = JSONField(_('References'), blank=True, null=True)
+
+    # Imap sync related metadata
+    uid = models.BigIntegerField(db_index=True)
 
     # TODO:
     # * attachments
