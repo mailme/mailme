@@ -34,6 +34,10 @@ install_requires = [
     # General dependencies
     'django==1.9.4',
 
+    # Imap utilities
+    'dnspython3==1.12.0',
+    'imapclient==1.0.1',
+
     # For async worker support
     'celery==3.1.23',
 
