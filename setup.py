@@ -18,6 +18,9 @@ test_requires = [
     'pytest==2.9.0',
     'pytest-django==2.9.1',
     'pytest-isort==0.1.0',
+    'pytest-asyncio==0.3.0',
+
+    'tzlocal==1.2.2',
 
     # Pep8 and code quality checkers
     'flake8==2.5.4',
