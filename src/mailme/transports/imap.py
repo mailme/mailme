@@ -5,6 +5,7 @@ from django.db.models import Max
 from imapclient import IMAPClient
 
 from .base import EmailTransport
+from mailme.models import Message
 from mailme.constants import DEFAULT_FOLDER_FLAGS, DEFAULT_FOLDER_MAPPING
 from mailme.providers import get_provider_info
 
@@ -22,7 +23,14 @@ class ImapTransport(EmailTransport):
 
     def connect(self):
         server = IMAPClient(self.uri.location, use_uid=True, ssl=self.uri.use_ssl)
-        server.login(self.uri.username, self.uri.password)
+        response = server.login(self.uri.username, self.uri.password)
+        print(response)
+        # TODO: grab capabilities list (but not everyone provides it):
+        # b'[CAPABILITY IMAP4rev1 LITERAL+ ID ENABLE XAPPLEPUSHSERVICE ACL
+        #    RIGHTS=kxten QUOTA MAILBOX-REFERRALS NAMESPACE UIDPLUS
+        #    NO_ATOMIC_RENAME UNSELECT CHILDREN MULTIAPPEND BINARY
+        #    CATENATE CONDSTORE ESEARCH SEARCH=FUZZY SORT SORT=MODSEQ
+        #    SORT=DISPLAY SORT=UID THREAD=ORDEREDSUBJECT...
         return server
 
     @property
@@ -31,10 +39,23 @@ class ImapTransport(EmailTransport):
             self._server = self.connect()
         return self._server
 
-    def get_new_uids(self):
-        lastseenuid = Message.objects.aggregate(max_uid=Max('uid'))['max_uid'] or 0
+    def sync(self):
+        for folder in self.get_folders_to_sync():
+            self.server.select_folder(folder)
 
-        new_messages = self.server.fetch('{}:*'.format(lastseenuid + 1), ['UID'])
+            lastseenuid = (Message.objects
+                .filter(folder__name=folder)
+                .aggregate(max_uid=Max('uid'))['max_uid'] or 0)
+
+            remote_uidnext = self.server.folder_status(
+                folder,
+                ['UIDNEXT']
+            ).get('UIDNEXT')
+
+            new_messages = self.server.fetch('{}:*'.format(lastseenuid + 1), ['UID'])
+
+            print(new_messages)
+
         # tag2 UID FETCH 1:<lastseenuid> FLAGS
 
     def get_folders_to_sync(self):
