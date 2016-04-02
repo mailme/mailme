@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from email.errors import MessageParseError
 
 from django.db.models import Max
@@ -36,6 +36,24 @@ class ImapTransport(EmailTransport):
 
         new_messages = self.server.fetch('{}:*'.format(lastseenuid + 1), ['UID'])
         # tag2 UID FETCH 1:<lastseenuid> FLAGS
+
+    def get_folders_to_sync(self):
+        to_sync = []
+        folders = self.folders()
+
+        _folder_names = defaultdict(list)
+
+        for folder in folders:
+            _folder_names[folder.role].append(folder.name)
+
+        # Sync inbox folder first, then others.
+        to_sync = _folder_names['inbox']
+        for role, folder_names in _folder_names.items():
+            if role == 'inbox':
+                continue
+            to_sync.extend(folder_names)
+
+        return to_sync
 
     def folders(self):
         """Fetch the list of folders for the account from the remote."""
