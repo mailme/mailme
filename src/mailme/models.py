@@ -186,6 +186,7 @@ class Thread(models.Model):
 
 class Message(models.Model):
     thread = models.ForeignKey(Thread, related_name='messages')
+    folder = models.ForeignKey(MailboxFolder, related_name='messages')
 
     from_address = JSONField(_('Sent from'), blank=True, default=[])
     to_address = JSONField(_('Sent to'), blank=True, default=[])
