@@ -22,3 +22,12 @@ DEFAULT_FOLDER_MAPPING = {
     'all': ALL,
     'important': IMPORTANT,
 }
+
+DEFAULT_FOLDER_FLAGS = {
+    '\\Trash': 'trash',
+    '\\Sent': 'sent',
+    '\\Drafts': 'drafts',
+    '\\Junk': 'spam',
+    '\\Inbox': 'inbox',
+    '\\Spam': 'spam'
+}
