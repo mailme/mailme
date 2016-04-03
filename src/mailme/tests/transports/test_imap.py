@@ -25,7 +25,8 @@ class TestImapTransport:
     @asyncio.coroutine
     def get_transport(self):
         transport = yield from asyncio.wait_for(
-            self.loop.run_in_executor(None, functools.partial(ImapTransport, self.uri, 'custom')),
+            self.loop.run_in_executor(None, functools.partial(
+                ImapTransport, self.uri, 'custom')),
             1
         )
         return transport
