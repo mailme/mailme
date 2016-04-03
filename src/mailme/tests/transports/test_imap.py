@@ -22,17 +22,21 @@ class TestImapTransport:
         reset_mailboxes()
         self.server.close()
 
-    @pytest.mark.asyncio
-    def test_folders(self, event_loop, unused_tcp_port):
-        imap_receive(Mail(['foo@bar.com'], mail_from='bar@foo.com', content='test'))
-
+    @asyncio.coroutine
+    def get_transport(self):
         transport = yield from asyncio.wait_for(
             self.loop.run_in_executor(None, functools.partial(ImapTransport, self.uri, 'custom')),
             1
         )
+        return transport
+
+    @pytest.mark.asyncio
+    def test_folders(self, event_loop, unused_tcp_port):
+        imap_receive(Mail(['foo@bar.com'], mail_from='bar@foo.com', content='test'))
+        transport = yield from self.get_transport()
 
         folders = yield from asyncio.wait_for(
-            self.loop.run_in_executor(None, functools.partial(transport.folders)),
+            self.loop.run_in_executor(None, transport.folders),
             1
         )
 
