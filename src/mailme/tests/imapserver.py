@@ -50,7 +50,10 @@ class ImapProtocol(asyncio.Protocol):
     def exec_command(self, tag, command_array):
         command = command_array[0].lower()
         if not hasattr(self, command):
-            return self.error(tag, 'Command "%s" not implemented' % command)
+            return self.error(
+                tag,
+                'Command "%s" not implemented, %s - %s' % (
+                    command, tag, command_array))
         getattr(self, command)(tag, *command_array[1:])
 
     def send_untagged_line(self, response, encoding='utf-8'):
@@ -118,6 +121,16 @@ class ImapProtocol(asyncio.Protocol):
                                     '{message_body})'.format(msg_uid=message.uid, size=len(message_body.encode(message.encoding)),
                                                              message_body=message_body), encoding=message.encoding)
         self.send_tagged_line(tag, 'OK FETCH completed.')
+
+    def list(self, tag, *args):
+        self.send_untagged_line('LIST (\\HasChildren) "." INBOX')
+        self.send_untagged_line('LIST (\\HasNoChildren \\Archive) "." INBOX.Archive')
+        self.send_untagged_line('LIST (\\HasNoChildren \\Drafts) "." INBOX.Drafts')
+        self.send_untagged_line('LIST (\\HasNoChildren \\Sent) "." INBOX.Sent')
+        self.send_untagged_line('LIST (\\HasNoChildren \\Junk) "." INBOX.Spam')
+        self.send_untagged_line('LIST (\\HasNoChildren \\Trash) "." INBOX.Trash')
+        self.send_tagged_line(tag, 'OK LIST Completed')
+
 
     def uid(self, tag, *args):
         self.by_uid = True
@@ -213,9 +226,3 @@ class Mail(object):
             return encode(self.subject, encoding='b')
         else:
             return self.subject
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    factory = loop.create_server(create_imap_protocol, 'localhost', 1143)
-    server = loop.run_until_complete(factory)
-    loop.run_forever()

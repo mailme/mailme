@@ -1,3 +1,4 @@
+import imaplib
 from collections import namedtuple, defaultdict
 
 from django.db.models import Max
@@ -10,6 +11,7 @@ from mailme.providers import get_provider_info
 
 
 DEFAULT_POLL_FREQUENCY = 30
+imaplib.Debug = 4
 
 ImapFolder = namedtuple('ImapFolder', ('name', 'role'))
 
@@ -21,7 +23,12 @@ class ImapTransport(EmailTransport):
         self._server = None
 
     def connect(self):
-        server = IMAPClient(self.uri.location, use_uid=True, ssl=self.uri.use_ssl)
+        print(self.uri, self.uri.port)
+        server = IMAPClient(
+            self.uri.location,
+            self.uri.port if self.uri.port else None,
+            use_uid=True,
+            ssl=self.uri.use_ssl)
         response = server.login(self.uri.username, self.uri.password)
         print(response)
         # TODO: grab capabilities list (but not everyone provides it):
