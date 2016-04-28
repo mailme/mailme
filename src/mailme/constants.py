@@ -18,6 +18,7 @@ DEFAULT_FOLDER_MAPPING = {
     'spam': SPAM,
     'archive': ARCHIVE,
     'sent': SENT,
+    'sent items': SENT,
     'trash': TRASH,
     'all': ALL,
     'important': IMPORTANT,
