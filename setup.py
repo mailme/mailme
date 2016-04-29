@@ -15,7 +15,7 @@ def read(*parts):
 test_requires = [
     # General test libraries
     'tox==2.3.1',
-    'pytest==2.9.0',
+    'pytest==2.9.1',
     'pytest-django==2.9.1',
     'pytest-isort==0.1.0',
     'pytest-asyncio==0.3.0',
@@ -28,14 +28,14 @@ test_requires = [
     'coverage==4.0.3',
 
     # Fixtures, test helpers
-    'factory-boy==2.6.1',
-    'mock==1.3.0',
+    'factory-boy==2.7.0',
+    'mock==2.0.0',
 ]
 
 
 install_requires = [
     # General dependencies
-    'django==1.9.4',
+    'django==1.9.5',
 
     # Imap utilities
     'dnspython3==1.12.0',
@@ -45,8 +45,8 @@ install_requires = [
     'celery==3.1.23',
 
     # i18n/l10n,
-    'babel==2.2.0',
-    'django-babel==0.5.0',
+    'babel==2.3.4',
+    'django-babel==0.5.1',
 
     # For our REST Api
     'djangorestframework==3.3.3',
@@ -56,7 +56,7 @@ install_requires = [
     'requests-toolbelt==0.6.0',
 
     # For proper timezone support.
-    'pytz==2016.1',
+    'pytz==2016.4',
 
     # Charset detection
     'chardet==2.3.0'
@@ -64,7 +64,7 @@ install_requires = [
 
 
 docs_requires = [
-    'sphinx==1.3.6',
+    'sphinx==1.4.1',
     'sphinx_rtd_theme'
 ]
 
