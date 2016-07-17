@@ -1,11 +1,10 @@
 import imaplib
-from collections import namedtuple, defaultdict
+from collections import namedtuple, OrderedDict
 
 from django.db.models import Max
 from imapclient import IMAPClient
 
 from .base import EmailTransport
-from mailme.models import Message
 from mailme.constants import DEFAULT_FOLDER_FLAGS, DEFAULT_FOLDER_MAPPING
 from mailme.providers import get_provider_info
 
@@ -17,9 +16,10 @@ ImapFolder = namedtuple('ImapFolder', ('name', 'role'))
 
 
 class ImapTransport(EmailTransport):
-    def __init__(self, uri, provider):
+    def __init__(self, uri, mailbox):
         self.uri = uri
-        self.provider_info = get_provider_info(provider)
+        self.mailbox = mailbox
+        self.provider_info = get_provider_info(mailbox.provider)
         self._server = None
 
     def connect(self):
@@ -29,6 +29,10 @@ class ImapTransport(EmailTransport):
             self.uri.port if self.uri.port else None,
             use_uid=True,
             ssl=self.uri.use_ssl)
+
+        if self.uri.use_tls:
+            self.server.starttls()
+
         response = server.login(self.uri.username, self.uri.password)
         print(response)
         # TODO: grab capabilities list (but not everyone provides it):
@@ -46,12 +50,15 @@ class ImapTransport(EmailTransport):
         return self._server
 
     def sync(self):
-        for folder in self.get_folders_to_sync():
-            self.server.select_folder(folder)
+        for imap_folder in self.get_folders_to_sync():
+            # TODO: normalize folder name? role isn't specific enough imho
+            # but maybe it is and should be used for normalization?
+            folder = self.mailbox.folders.get_or_create(name=imap_folder.name)
+            lastseenuid = folder.aggregate(max_uid=Max('uid'))['max_uid'] or 0
 
-            lastseenuid = (Message.objects
-                .filter(folder__name=folder)
-                .aggregate(max_uid=Max('uid'))['max_uid'] or 0)
+            # Begin imap session, please note that `self.server` isn't stateless
+            # but all following actions are exacuted against the actual folder
+            self.server.select_folder(folder.name)
 
             folder_status = self.server.folder_status(folder, ['UIDNEXT', 'UIDVALIDITY'])
 
@@ -65,17 +72,20 @@ class ImapTransport(EmailTransport):
         to_sync = []
         folders = self.folders()
 
-        _folder_names = defaultdict(list)
+        _folder_names = OrderedDict()
 
+        # TODO: prioritize properly
         for folder in folders:
-            _folder_names[folder.role].append(folder.name)
+            _folder_names.setdefault(folder.role, [])
+            _folder_names[folder.role].append(folder)
 
+        # TODO: for gmail make sure that we only sync `all`, `spam` and `trash`
         # Sync inbox folder first, then others.
         to_sync = _folder_names['inbox']
-        for role, folder_names in _folder_names.items():
+        for role, folders in _folder_names.items():
             if role == 'inbox':
                 continue
-            to_sync.extend(folder_names)
+            to_sync.extend(folders)
 
         return to_sync
 

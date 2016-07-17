@@ -127,7 +127,7 @@ class Mailbox(models.Model):
             conn = ImapTransport(
                 uri.location,
                 ssl=uri.use_ssl,
-                provider=self.provider
+                mailbox=self,
             )
             conn.connect(uri.username, uri.password)
         return conn

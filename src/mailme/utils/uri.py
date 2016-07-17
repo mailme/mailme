@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 URI = namedtuple('URI', (
     'protocol_info', 'query_string', 'domain', 'port', 'username', 'password',
-    'location', 'scheme', 'use_ssl'
+    'location', 'scheme', 'use_ssl', 'use_tls'
 ))
 
 
@@ -24,5 +24,6 @@ def parse_uri(uri):
         password=unquote(protocol_info.password),
         location=protocol_info.hostname if protocol_info.hostname else '' + protocol_info.path,
         scheme=scheme,
-        use_ssl='+ssl' in protocol_info.scheme.lower()
+        use_ssl='+ssl' in protocol_info.scheme.lower(),
+        use_tls='+tls' in protocol_info.scheme.lower()
     )
