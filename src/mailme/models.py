@@ -78,7 +78,7 @@ class MailboxFolder(models.Model):
     name = models.CharField(_('Folder name'), max_length=256)
 
     # Imap sync related
-    uidvalidity = models.BigIntegerField()
+    uidvalidity = models.BigIntegerField(null=True, blank=True)
     highestmodseq = models.BigIntegerField(null=True, blank=True)
     uidnext = models.PositiveIntegerField(null=True, blank=True)
 

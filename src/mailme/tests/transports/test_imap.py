@@ -3,13 +3,14 @@ import functools
 
 import pytest
 
-from mailme.models import Mailbox
 from mailme.transports.imap import ImapTransport, ImapFolder
 from mailme.utils.uri import parse_uri
 from mailme.tests.imapserver import (
     imap_receive, reset_mailboxes, create_imap_protocol, Mail)
+from mailme.tests.factories.mailbox import MailboxFactory
 
 
+@pytest.mark.django_db
 class TestImapTransport:
 
     @pytest.fixture(autouse=True)
@@ -23,13 +24,11 @@ class TestImapTransport:
         reset_mailboxes()
         self.server.close()
 
-    @asyncio.coroutine
     def get_transport(self):
-        transport = yield from asyncio.wait_for(
-            self.loop.run_in_executor(None, functools.partial(
-                ImapTransport, self.uri, Mailbox(provider='custom'))),
-            1
-        )
+        mailbox = MailboxFactory.create()
+        print('created mailbox')
+        transport = ImapTransport(self.uri, mailbox)
+        print('created transport')
         return transport
 
     @pytest.mark.asyncio
@@ -68,3 +67,10 @@ class TestImapTransport:
             ImapFolder(name='INBOX.Spam', role=None),
             ImapFolder(name='INBOX.Trash', role='trash')
         ]
+
+    def test_sync_empty(self):
+        print('start test')
+        transport = self.get_transport()
+        print('got transport')
+        transport.sync()
+        print('done sync')

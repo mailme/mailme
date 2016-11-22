@@ -29,10 +29,10 @@ class ImapTransport(EmailTransport):
             self.uri.port if self.uri.port else None,
             use_uid=True,
             ssl=self.uri.use_ssl)
-
+        print('started server')
         if self.uri.use_tls:
             self.server.starttls()
-
+        print('login')
         response = server.login(self.uri.username, self.uri.password)
         print(response)
         # TODO: grab capabilities list (but not everyone provides it):
@@ -50,6 +50,9 @@ class ImapTransport(EmailTransport):
         return self._server
 
     def sync(self):
+        # TODO: This should absolutely be asyncronous and
+        # push out one task per folder or something smarter
+        print('sync')
         for imap_folder in self.get_folders_to_sync():
             # TODO: normalize folder name? role isn't specific enough imho
             # but maybe it is and should be used for normalization?
