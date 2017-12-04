@@ -46,7 +46,7 @@ chardet==3.0.4
 
 # Docs requirements
 sphinx==1.6.5
-sphinx_rtd_theme
+sphinx_rtd_theme==0.2.4
 
 # Postgresql
 psycopg2==2.7.3.2
