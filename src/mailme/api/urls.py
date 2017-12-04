@@ -1,13 +1,13 @@
-from django.conf.urls import url
+from django.urls import path
 
 from .endpoints.dummy import AuthenticatedDummyView
 from .endpoints.auth import RegisterView, LoginView
 
 
 urlpatterns = [
-    url(r'auth/register/$', RegisterView.as_view(), name='register'),
-    url(r'auth/login/$', LoginView.as_view(), name='login'),
+    path('auth/register/', RegisterView.as_view(), name='register'),
+    path('auth/login/', LoginView.as_view(), name='login'),
 
     # Dummy view, used for testing.
-    url(r'dummy/$', AuthenticatedDummyView.as_view()),
+    path('dummy/', AuthenticatedDummyView.as_view()),
 ]

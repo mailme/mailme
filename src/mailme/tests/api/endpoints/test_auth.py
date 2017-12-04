@@ -1,6 +1,6 @@
 import mock
 import pytest
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from mailme.models import User
 from mailme.utils.test import APIClient

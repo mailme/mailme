@@ -1,9 +1,6 @@
-import functools
-
 import pytest
 
-from mailme.transports.imap import ImapTransport, ImapFolder
-from mailme.utils.uri import parse_uri
+from mailme.transports.imap import ImapTransport
 from mailme.tests.factories.mailbox import MailboxFactory
 
 

@@ -12,8 +12,11 @@ class UserFactory(factory.DjangoModelFactory):
         model = User
 
     @classmethod
-    def _prepare(cls, create, **kwargs):
+    def _create(cls, model_class, *args, **kwargs):
+        """Override the default _create() to disable the post-save signal."""
         raw_password = kwargs.pop('raw_password', 'secret')
         if 'password' not in kwargs:
             kwargs['password'] = make_password(raw_password, hasher='pbkdf2_sha256')
-        return super(UserFactory, cls)._prepare(create, **kwargs)
+
+        user = super(UserFactory, cls)._create(model_class, *args, **kwargs)
+        return user
