@@ -74,7 +74,9 @@ class MailboxFolder(models.Model):
     This is used purely for syncing purposes, we do store folders
     as flags on messages but don't represent a regular imap mailbox.
     """
-    mailbox = models.ForeignKey('Mailbox', related_name='folders')
+    mailbox = models.ForeignKey(
+        'Mailbox', related_name='folders',
+        on_delete=models.PROTECT)
     name = models.CharField(_('Folder name'), max_length=256)
 
     # Imap sync related
@@ -85,7 +87,7 @@ class MailboxFolder(models.Model):
 
 class Mailbox(models.Model):
     name = models.CharField(_(u'Name'), max_length=256)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
 
     uri = models.CharField(
         _(u'URI'), max_length=256,
@@ -175,7 +177,8 @@ class Mailbox(models.Model):
 
 
 class Thread(models.Model):
-    mailbox = models.ForeignKey(Mailbox, related_name='threads')
+    mailbox = models.ForeignKey(
+        Mailbox, related_name='threads', on_delete=models.PROTECT)
     subject = models.CharField(max_length=256)
 
     # TODO:
@@ -185,8 +188,10 @@ class Thread(models.Model):
 
 
 class Message(models.Model):
-    thread = models.ForeignKey(Thread, related_name='messages')
-    folder = models.ForeignKey(MailboxFolder, related_name='messages')
+    thread = models.ForeignKey(
+        Thread, related_name='messages', on_delete=models.PROTECT)
+    folder = models.ForeignKey(
+        MailboxFolder, related_name='messages', on_delete=models.PROTECT)
 
     from_address = JSONField(_('Sent from'), blank=True, default=[])
     to_address = JSONField(_('Sent to'), blank=True, default=[])
