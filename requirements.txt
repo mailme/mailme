@@ -52,4 +52,4 @@ sphinx_rtd_theme==0.2.4
 psycopg2==2.7.3.2
 
 # Redis
-redis==2.10.5
+redis==2.10.6
