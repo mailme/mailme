@@ -29,7 +29,7 @@ celery==4.1.0
 
 # i18n/l10n,
 babel==2.5.1
-django-babel==0.5.1
+django-babel==0.6.1
 
 # For our REST Api
 djangorestframework==3.5.3
