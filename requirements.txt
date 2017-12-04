@@ -42,7 +42,7 @@ requests-toolbelt==0.8.0
 pytz==2017.3
 
 # Charset detection
-chardet==2.3.0
+chardet==3.0.4
 
 # Docs requirements
 sphinx==1.4.8
