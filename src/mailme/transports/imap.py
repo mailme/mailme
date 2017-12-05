@@ -80,6 +80,11 @@ class ImapTransport(EmailTransport):
 
             folder_status = self.server.folder_status(folder.name, ['UIDNEXT', 'UIDVALIDITY'])
 
+            self.mailbox.folders.filter(name=imap_folder.name).update(
+                uidnext=folder_status[b'UIDNEXT'],
+                uidvalidity=folder_status[b'UIDVALIDITY']
+            )
+
             new_messages = self.server.fetch('{}:*'.format(lastseenuid + 1), ['UID'])
 
             print(folder_status, new_messages)
