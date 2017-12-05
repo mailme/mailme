@@ -23,24 +23,21 @@ class ImapTransport(EmailTransport):
         self._server = None
 
     def connect(self):
-        print(self.uri, self.uri.port)
         server = IMAPClient(
             self.uri.location,
             self.uri.port if self.uri.port else None,
             use_uid=True,
             ssl=self.uri.use_ssl)
-        print('started server')
+
         if self.uri.use_tls:
             self.server.starttls()
-        print('login')
+
+        # TODO: Check for condstore and enable
+        # if client.has_capability('ENABLE') and client.has_capability('CONDSTORE'):
+        #       client.enable('CONDSTORE')
+        #       condstore_enabled = True
+
         response = server.login(self.uri.username, self.uri.password)
-        print(response)
-        # TODO: grab capabilities list (but not everyone provides it):
-        # b'[CAPABILITY IMAP4rev1 LITERAL+ ID ENABLE XAPPLEPUSHSERVICE ACL
-        #    RIGHTS=kxten QUOTA MAILBOX-REFERRALS NAMESPACE UIDPLUS
-        #    NO_ATOMIC_RENAME UNSELECT CHILDREN MULTIAPPEND BINARY
-        #    CATENATE CONDSTORE ESEARCH SEARCH=FUZZY SORT SORT=MODSEQ
-        #    SORT=DISPLAY SORT=UID THREAD=ORDEREDSUBJECT...
         return server
 
     @property
@@ -52,7 +49,6 @@ class ImapTransport(EmailTransport):
     def sync(self):
         # TODO: This should absolutely be asyncronous and
         # push out one task per folder or something smarter
-        print('sync')
         for imap_folder in self.get_folders_to_sync():
             # TODO: normalize folder name? role isn't specific enough imho
             # but maybe it is and should be used for normalization?
@@ -60,7 +56,7 @@ class ImapTransport(EmailTransport):
             lastseenuid = folder.aggregate(max_uid=Max('uid'))['max_uid'] or 0
 
             # Begin imap session, please note that `self.server` isn't stateless
-            # but all following actions are exacuted against the actual folder
+            # but all following actions are executed against the actual folder
             self.server.select_folder(folder.name)
 
             folder_status = self.server.folder_status(folder, ['UIDNEXT', 'UIDVALIDITY'])
@@ -82,8 +78,8 @@ class ImapTransport(EmailTransport):
             _folder_names.setdefault(folder.role, [])
             _folder_names[folder.role].append(folder)
 
-        # TODO: for gmail make sure that we only sync `all`, `spam` and `trash`
-        # Sync inbox folder first, then others.
+        # TODO: for gmail make sure that we only sync `all`, `spam` and `trash`.
+        # Sync `inbox` folder first, then others.
         to_sync = _folder_names['inbox']
         for role, folders in _folder_names.items():
             if role == 'inbox':
