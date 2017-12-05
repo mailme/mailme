@@ -1,4 +1,5 @@
 import imaplib
+import ssl
 from collections import namedtuple, OrderedDict
 
 from django.db.models import Max
@@ -7,6 +8,7 @@ from imapclient import IMAPClient
 from .base import EmailTransport
 from mailme.constants import DEFAULT_FOLDER_FLAGS, DEFAULT_FOLDER_MAPPING
 from mailme.providers import get_provider_info
+from mailme.utils.uri import parse_uri
 
 
 DEFAULT_POLL_FREQUENCY = 30
@@ -16,21 +18,38 @@ ImapFolder = namedtuple('ImapFolder', ('name', 'role'))
 
 
 class ImapTransport(EmailTransport):
-    def __init__(self, uri, mailbox):
-        self.uri = uri
+    def __init__(self, uri, mailbox, disable_cert_check=False):
+        if isinstance(uri, str):
+            self.uri = parse_uri(uri)
+
         self.mailbox = mailbox
         self.provider_info = get_provider_info(mailbox.provider)
         self._server = None
+        self._disable_cert_check = disable_cert_check
 
     def connect(self):
+        kwargs = {}
+
+        if self._disable_cert_check:
+            ssl_context = ssl.create_default_context()
+
+            # don't check if certificate hostname doesn't match target hostname
+            ssl_context.check_hostname = False
+
+            # don't check if the certificate is trusted by a certificate authority
+            ssl_context.verify_mode = ssl.CERT_NONE
+
+            kwargs['ssl_context'] = ssl_context
+
         server = IMAPClient(
             self.uri.location,
             self.uri.port if self.uri.port else None,
             use_uid=True,
-            ssl=self.uri.use_ssl)
+            ssl=self.uri.use_ssl,
+            **kwargs)
 
         if self.uri.use_tls:
-            self.server.starttls()
+            _server.starttls()
 
         # TODO: Check for condstore and enable
         # if client.has_capability('ENABLE') and client.has_capability('CONDSTORE'):
@@ -52,14 +71,14 @@ class ImapTransport(EmailTransport):
         for imap_folder in self.get_folders_to_sync():
             # TODO: normalize folder name? role isn't specific enough imho
             # but maybe it is and should be used for normalization?
-            folder = self.mailbox.folders.get_or_create(name=imap_folder.name)
-            lastseenuid = folder.aggregate(max_uid=Max('uid'))['max_uid'] or 0
+            folder, _ = self.mailbox.folders.get_or_create(name=imap_folder.name)
+            lastseenuid = folder.messages.aggregate(max_uid=Max('uid'))['max_uid'] or 0
 
             # Begin imap session, please note that `self.server` isn't stateless
             # but all following actions are executed against the actual folder
             self.server.select_folder(folder.name)
 
-            folder_status = self.server.folder_status(folder, ['UIDNEXT', 'UIDVALIDITY'])
+            folder_status = self.server.folder_status(folder.name, ['UIDNEXT', 'UIDVALIDITY'])
 
             new_messages = self.server.fetch('{}:*'.format(lastseenuid + 1), ['UID'])
 

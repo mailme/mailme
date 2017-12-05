@@ -1,3 +1,5 @@
+import uuid
+
 import factory
 from django.contrib.auth.hashers import make_password
 
@@ -5,7 +7,7 @@ from mailme.models import User
 
 
 class UserFactory(factory.DjangoModelFactory):
-    username = factory.Sequence(lambda i: 'user{0}'.format(i))
+    username = factory.Sequence(lambda i: 'user-{0}'.format(str(uuid.uuid4()).split('-')[0]))
     is_active = True
 
     class Meta:
