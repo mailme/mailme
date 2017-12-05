@@ -1,7 +1,9 @@
 import os
 
+import environ
 from kombu import Queue
 
+env = environ.Env()
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_DIR = os.path.join(BASE_DIR, '..', '..')
@@ -53,11 +55,15 @@ WSGI_APPLICATION = 'mailme.wsgi.application'
 AUTH_USER_MODEL = 'mailme.User'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'mailme_dev',
-    }
+    'default': env.db_url(default='psql://postgres:@localhost/mailme')
 }
+
+# Run all views in a transaction unless they are decorated not to.
+DATABASES['default']['ATOMIC_REQUESTS'] = True
+
+# Pool our database connections up for 300 seconds
+DATABASES['default']['CONN_MAX_AGE'] = 300
+
 
 TEMPLATES = [
     {
@@ -126,7 +132,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'web', 'media')
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
+## Celery
 BROKER_URL = 'redis://localhost:6379'
+
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_BROKER_CONNECTION_TIMEOUT = 0.1
+CELERY_BROKER_HEARTBEAT = 60 * 15
+CELERY_TASK_DEFAULT_QUEUE = 'default'
+CELERY_RESULT_BACKEND = env(
+    'CELERY_RESULT_BACKEND', default='redis://localhost:6379/1')
+
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_SEND_TASK_ERROR_EMAILS = True
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 
 # Just so that this won't be forgotten, see
 # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#caveats
@@ -144,8 +162,6 @@ CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
-
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 # Track started tasks. This adds a new STARTED state once a task
 # is started by the celery worker.

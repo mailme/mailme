@@ -3,17 +3,18 @@ version: "2"
 services:
   web:
     build: .
-    command: supervisord -n -c /code/docker/supervisor.conf
+    command: circusd /code/docker/circus.ini
     entrypoint: ./scripts/start-docker.sh
     volumes:
       - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/1
-      - DATABASE_URL=mysql://root:@postgresql/mailme
+      - DATABASE_URL=psql://postgres:@db/mailme
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - TERM=xterm-256color
+      - DJANGO_SETTINGS_MODULE=mailme.conf.development
     extra_hosts:
      - "mailme.dev:127.0.0.1"
 

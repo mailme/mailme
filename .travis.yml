@@ -1,6 +1,5 @@
 language: python
 python:
-  - '3.5'
   - '3.6'
 sudo: false
 
@@ -15,12 +14,6 @@ cache:
   directories:
     - $HOME/.cache/pip/
 
-env:
-  global:
-    - DJANGO_SETTINGS_MODULE="mailme.conf.travis"
-    - MAILME_TEST_DB_NAME=mailme_test
-    - MAILME_TEST_DB_USER=travis
-
 before_install:
   - psql --version
 
@@ -28,7 +21,7 @@ install:
   - make develop
 
 before_script:
-  - psql -c 'create database mailme_test;' -U postgres
+  - psql -c 'create database mailme;' -U postgres
 
 script:
   - make test

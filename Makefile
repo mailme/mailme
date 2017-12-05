@@ -40,29 +40,43 @@ clean-build:
 	$(MAKE) -C docs clean
 
 
-lint:
-	flake8 src/
-
-
-test: lint
-	py.test ${APP}
-
-
-coverage:
-	py.test --cov=${COVER} --cov-report=term-missing ${APP}
-
-
-coverage-html:
-	py.test --cov=${COVER} --cov-report=html ${APP}
-
-
-tox:
-	@tox
-
-
 i18n:
 	@python manage.py babel makemessages -d django -l de
 	@python manage.py babel compilemessages -d django -l de
 	@python manage.py babel makemessages -d djangojs -l de
 	@python manage.py babel compilemessages -d djangojs -l de
 	@python manage.py compilejsi18n -d djangojs -l de
+
+
+test: lint
+	docker-compose exec web py.test $(APP) $(ARGS)
+
+lint:
+	docker-compose exec web flake8 src/
+
+coverage:
+	docker-compose exec web py.test --cov=${COVER} --cov-report=term-missing ${APP}
+
+coverage-html:
+	docker-compose exec web py.test --cov=${COVER} --cov-report=html ${APP}
+
+tdd:
+	docker-compose exec web py.test -x --pdb $(ARGS) $(APP)
+
+test_failed:
+	docker-compose exec web py.test --lf $(ARGS) $(APP)
+
+update_docker:
+	docker-compose exec web make develop
+
+initialize_docker: update_docker
+	docker-compose exec web ./manage.py migrate
+
+shell:
+	docker-compose exec web bash
+
+djshell:
+	docker-compose exec web ./manage.py shell
+
+dbshell:
+	docker-compose exec web ./manage.py dbshell

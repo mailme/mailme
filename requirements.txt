@@ -53,3 +53,5 @@ psycopg2==2.7.3.2
 
 # Redis
 redis==2.10.6
+
+django-environ==0.4.4
