@@ -49,7 +49,7 @@ class ImapTransport(EmailTransport):
             **kwargs)
 
         if self.uri.use_tls:
-            _server.starttls()
+            server.starttls()
 
         # TODO: Check for condstore and enable
         # if client.has_capability('ENABLE') and client.has_capability('CONDSTORE'):
