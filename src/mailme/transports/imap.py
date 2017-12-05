@@ -37,7 +37,7 @@ class ImapTransport(EmailTransport):
         #       client.enable('CONDSTORE')
         #       condstore_enabled = True
 
-        response = server.login(self.uri.username, self.uri.password)
+        server.login(self.uri.username, self.uri.password)
         return server
 
     @property
