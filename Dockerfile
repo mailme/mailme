@@ -1,6 +1,8 @@
 FROM revolutionsystems/python:3.6.3-wee
 
 RUN apt-get update && apt-get install -y \
+    gcc \
+    build-essential \
     git \
     graphicsmagick
 

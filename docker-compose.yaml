@@ -21,7 +21,18 @@ services:
     image: redis:2.8
 
   db:
-    image: postgres/10.1-alpine
+    image: postgres:10.1-alpine
+
+  imap:
+    image: antespi/docker-imap-devel:latest
+    ports:
+      - "25:25"
+      - "143:143"
+      - "993:993"
+    environment:
+      - MAILNAME=mailme.dev
+      - MAIL_ADDRESS=testing@mailme.dev
+      - MAIL_PASS=password
 
   # selenium-firefox:
   #   image: selenium/standalone-firefox-debug
