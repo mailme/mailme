@@ -6,7 +6,9 @@ from django.db.models import Max
 from imapclient import IMAPClient
 
 from .base import EmailTransport
-from mailme.constants import DEFAULT_FOLDER_FLAGS, DEFAULT_FOLDER_MAPPING
+from mailme.constants import (
+    DEFAULT_FOLDER_FLAGS, DEFAULT_FOLDER_MAPPING, IGNORE_FOLDER_NAMES
+)
 from mailme.providers import get_provider_info
 from mailme.utils.uri import parse_uri
 
@@ -74,7 +76,7 @@ class ImapTransport(EmailTransport):
 
             # Begin imap session, please note that `self.client` isn't stateless
             # but all following actions are executed against the actual folder
-            self.client.select_folder(folder.name)
+            self.client.select_folder(folder.name, readonly=True)
 
             folder_status = self.client.folder_status(
                 folder.name, ['UIDNEXT', 'UIDVALIDITY'])
@@ -145,14 +147,13 @@ class ImapTransport(EmailTransport):
 
     def folders(self):
         """Fetch the list of folders for the account from the remote."""
-        ignore = {'\\Noselect', '\\NoSelect', '\\NonExistent'}
         provider_map = self.provider_info.get('folder_map', {})
         _folder_list = self.client.list_folders()
 
         retval = []
 
         for flags, delimiter, name in _folder_list:
-            if name in ignore:
+            if name in IGNORE_FOLDER_NAMES:
                 # Special folders that can't contain messages
                 continue
 

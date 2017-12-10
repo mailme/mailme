@@ -1,3 +1,4 @@
+import imapclient
 
 # Folder name mappings, based on http://tools.ietf.org/html/rfc6154
 INBOX = 'inbox'
@@ -8,6 +9,18 @@ SENT = 'sent'
 TRASH = 'trash'
 ALL = 'all'
 IMPORTANT = 'important'
+
+# System flags
+DELETED = imapclient.DELETED
+SEEN = imapclient.SEEN
+ANSWERED = imapclient.ANSWERED
+FLAGGED = imapclient.FLAGGED
+DRAFT = imapclient.DRAFT
+RECENT = imapclient.RECENT
+
+IGNORE_FOLDER_NAMES = (
+    '\\Noselect', '\\NoSelect', '\\NonExistent'
+)
 
 # Default mapping to unify various provider behaviors
 DEFAULT_FOLDER_MAPPING = {
