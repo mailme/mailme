@@ -31,8 +31,8 @@ class APIClient(BaseAPIClient):
 
         if not any(type in content_type for type in types):
             raise ValueError(
-                'Content-Type header is "{0}", not "application/json"'
-                .format(response.get('Content-Type'))
+                f'Content-Type header is "{content_type}", '
+                f'not "application/json"'
             )
 
         return json.loads(response.content.decode(), **extra)

@@ -25,7 +25,7 @@ class TestTestClient:
 
         client = self.get_client()
 
-        endpoint = '{0}/api/dummy/'.format(self.liveserver.url)
+        endpoint = f'{self.liveserver.url}/api/dummy/'
 
         response = client.get(endpoint)
 

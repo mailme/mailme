@@ -24,7 +24,7 @@ class ImapTransport(EmailTransport):
 
         self.mailbox = mailbox
         self.provider_info = get_provider_info(mailbox.provider)
-        self._server = None
+        self._client = None
         self._disable_cert_check = disable_cert_check
 
     def connect(self):
@@ -41,7 +41,7 @@ class ImapTransport(EmailTransport):
 
             kwargs['ssl_context'] = ssl_context
 
-        server = IMAPClient(
+        client = IMAPClient(
             self.uri.location,
             self.uri.port if self.uri.port else None,
             use_uid=True,
@@ -49,47 +49,78 @@ class ImapTransport(EmailTransport):
             **kwargs)
 
         if self.uri.use_tls:
-            server.starttls()
+            client.starttls()
 
         # TODO: Check for condstore and enable
         # if client.has_capability('ENABLE') and client.has_capability('CONDSTORE'):
         #       client.enable('CONDSTORE')
         #       condstore_enabled = True
 
-        server.login(self.uri.username, self.uri.password)
-        return server
+        client.login(self.uri.username, self.uri.password)
+        return client
 
     @property
-    def server(self):
-        if self._server is None:
-            self._server = self.connect()
-        return self._server
+    def client(self):
+        if self._client is None:
+            self._client = self.connect()
+        return self._client
 
     def sync(self):
-        # TODO: This should absolutely be asyncronous and
-        # push out one task per folder or something smarter
         for imap_folder in self.get_folders_to_sync():
             # TODO: normalize folder name? role isn't specific enough imho
             # but maybe it is and should be used for normalization?
             folder, _ = self.mailbox.folders.get_or_create(name=imap_folder.name)
             lastseenuid = folder.messages.aggregate(max_uid=Max('uid'))['max_uid'] or 0
 
-            # Begin imap session, please note that `self.server` isn't stateless
+            # Begin imap session, please note that `self.client` isn't stateless
             # but all following actions are executed against the actual folder
-            self.server.select_folder(folder.name)
+            self.client.select_folder(folder.name)
 
-            folder_status = self.server.folder_status(folder.name, ['UIDNEXT', 'UIDVALIDITY'])
+            folder_status = self.client.folder_status(
+                folder.name, ['UIDNEXT', 'UIDVALIDITY'])
 
+            # TODO: Evaluate `highestmodseq`
+            need_sync = (
+                folder.uidnext != folder_status[b'UIDNEXT'] and
+                folder.uidvalidity != folder_status[b'UIDVALIDITY'])
+
+            if not need_sync:
+                continue
+
+            # TODO:
+            # if folder.uidvalidity != folder_status[b'UIDVALIDITY']:
+            #     # full resync
+
+            new_message_uids = self.client.fetch(
+                f'{lastseenuid + 1}:*',
+                (
+                    'FLAGS', 'UID', 'BODYSTRUCTURE', 'INTERNALDATE',
+                    'RFC822.SIZE'
+                )
+            )
+
+            print(new_message_uids)
+
+            message_id_batch = self.uid_sequence(new_message_uids.keys())
+
+            print('fetching', message_id_batch)
+
+            # TODO:
+            # Add support for GMail specific flags: X-GM-THRID, X-GM-MSGID,
+            # X-GM-LABELS
+            data = self.client.fetch(
+                message_id_batch,
+                ('BODY.PEEK[]',)
+            )
+
+            for uid, msg in data.items():
+                print(self.get_email_from_bytes(msg[b'BODY[]']))
+
+            # We're done with the update, mark the new state in the database
             self.mailbox.folders.filter(name=imap_folder.name).update(
                 uidnext=folder_status[b'UIDNEXT'],
                 uidvalidity=folder_status[b'UIDVALIDITY']
             )
-
-            new_messages = self.server.fetch('{}:*'.format(lastseenuid + 1), ['UID'])
-
-            print(folder_status, new_messages)
-
-        # tag2 UID FETCH 1:<lastseenuid> FLAGS
 
     def get_folders_to_sync(self):
         to_sync = []
@@ -116,7 +147,7 @@ class ImapTransport(EmailTransport):
         """Fetch the list of folders for the account from the remote."""
         ignore = {'\\Noselect', '\\NoSelect', '\\NonExistent'}
         provider_map = self.provider_info.get('folder_map', {})
-        _folder_list = self.server.list_folders()
+        _folder_list = self.client.list_folders()
 
         retval = []
 
@@ -139,3 +170,45 @@ class ImapTransport(EmailTransport):
             retval.append(ImapFolder(name=name, role=role))
 
         return retval
+
+    def uid_sequence(self, uidlist):
+        """Collapse UID lists into shorter sequence sets
+
+        E.g [1,2,3,4,5,10,12,13] will return "1:5,10,12:13".
+
+        This function sorts the list, and only collapses if subsequent entries
+        form a range.
+
+        :returns: The collapsed UID list as string.
+        """
+
+        def getrange(start, end):
+            if start == end:
+                return str(start)
+            return f'{start}:{end}'
+
+        if not uidlist:
+            return ''
+
+        start, end = None, None
+        retval = []
+
+        # Force items to be longs and sort them
+        sorted_uids = sorted(map(int, uidlist))
+
+        for item in sorted_uids:
+            item = int(item)
+            if start is None:
+                # first item
+                start, end = item, item
+            elif item == end + 1:
+                # Next item in a range
+                end = item
+            else:
+                # Starting a new range
+                retval.append(getrange(start, end))
+                start, end = item, item
+
+        # Add final range/item
+        retval.append(getrange(start, end))
+        return ','.join(retval)

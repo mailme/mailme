@@ -80,4 +80,4 @@ class JSONWebTokenAuthentication(BaseAuthentication):
         header in a `401 Unauthenticated` response, or `None` if the
         authentication scheme should return `403 Permission Denied` responses.
         """
-        return '{0} realm="{1}"'.format(self.auth_header_prefix, self.www_authenticate_realm)
+        return f'{self.auth_header_prefix} realm="{self.www_authenticate_realm}"'

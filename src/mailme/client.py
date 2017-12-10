@@ -21,10 +21,10 @@ class APIError(Exception):
         self.message = message
 
     def __str__(self):
-        return '{}: {}'.format(self.message)
+        return self.message
 
     def __repr__(self):
-        return '<APIError({})>'.format(self.message)
+        return f'<APIError({self.message})>'
 
 
 class Client(requests.Session):
@@ -44,10 +44,7 @@ class Client(requests.Session):
 
     def build_url(self, endpoint, qs=None):
         scheme = 'https' if self.force_https else 'http'
-        url = urljoin(
-            '{scheme}://{host}:{port}'.format(
-                scheme=scheme, host=self.host, port=self.port),
-            endpoint)
+        url = urljoin(f'{scheme}://{self.host}:{self.port}', endpoint)
 
         if qs:
             url += '?' + urlencode(qs)
@@ -59,7 +56,8 @@ class Client(requests.Session):
 
         if not verify_host(url, [self.host]):
             raise InvalidHost(
-                'Please verify the client is using "{}" has host'.format(self.host))
+                f'Please verify the client is using '
+                f'"{self.host}" has host')
 
         parse_result = urllib.parse.urlparse(url)
 
@@ -75,7 +73,7 @@ class Client(requests.Session):
         }
 
         if self.jwt_token:
-            headers['Authorization'] = 'JWT {}'.format(self.jwt_token)
+            headers['Authorization'] = f'JWT {self.jwt_token}'
 
         headers.update(kwargs.pop('headers', {}))
 

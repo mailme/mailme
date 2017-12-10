@@ -224,4 +224,4 @@ class Message(models.Model):
         return self.subject
 
     def __repr__(self):
-        return '<Message({})>'.format(self.subject)
+        return f'<Message({self.subject})>'

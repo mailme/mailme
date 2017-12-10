@@ -10,22 +10,15 @@ def get_logger(obj):
     name = None
     module = getattr(inspect.getmodule(obj), '__name__', None)
     if inspect.ismethod(obj):
-        name = '{module}.{cls}.{method}'.format(
-            module=module,
-            cls=obj.im_class.__name__,
-            method=obj.__func__.__name__
-        )
+        name = f'{module}.{obj.im_class.__name__}.{obj.__func__.__name__}'
     elif inspect.isfunction(obj):
-        name = '{module}.{function}'.format(
-            module=module,
-            function=getattr(obj, 'func_name', getattr(
-                obj, '__qualname__', obj.__name__))
-        )
+        function = getattr(
+            obj, 'func_name',
+            getattr(obj, '__qualname__', obj.__name__))
+
+        name = f'{module}.{function}'
     elif inspect.isclass(obj):
-        name = '{module}.{cls}'.format(
-            module=module,
-            cls=obj.__name__
-        )
+        name = f'{module}.{obj.__name__}'
     elif isinstance(obj, str):
         name = obj
 
