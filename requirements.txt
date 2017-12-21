@@ -32,7 +32,7 @@ babel==2.5.1
 django-babel==0.6.1
 
 # For our REST Api
-djangorestframework==3.7.3
+djangorestframework==3.7.6
 PyJWT==1.5.3
 requests==2.18.4
 urllib3==1.22
