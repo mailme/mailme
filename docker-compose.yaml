@@ -16,7 +16,7 @@ services:
       - TERM=xterm-256color
       - DJANGO_SETTINGS_MODULE=mailme.conf.development
     extra_hosts:
-     - "mailme.dev:127.0.0.1"
+     - "mailme.test:127.0.0.1"
 
   redis:
     image: redis:2.8
@@ -31,8 +31,8 @@ services:
       - "143:143"
       - "993:993"
     environment:
-      - MAILNAME=mailme.dev
-      - MAIL_ADDRESS=testing@mailme.dev
+      - MAILNAME=mailme.test
+      - MAIL_ADDRESS=testing@mailme.test
       - MAIL_PASS=password
 
   # selenium-firefox:
@@ -43,4 +43,4 @@ services:
   #     - "5900"
   #   shm_size: 2g
   #   links:
-  #    - "web:mailme.dev"
+  #    - "web:mailme.test"
