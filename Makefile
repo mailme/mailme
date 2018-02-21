@@ -49,22 +49,22 @@ i18n:
 
 
 test: lint
-	docker-compose exec web py.test $(APP) $(ARGS)
+	docker-compose exec web pytest $(APP) $(ARGS)
 
 lint:
 	docker-compose exec web flake8 src/
 
 coverage:
-	docker-compose exec web py.test --cov=${COVER} --cov-report=term-missing ${APP}
+	docker-compose exec web pytest --cov=${COVER} --cov-report=term-missing ${APP}
 
 coverage-html:
-	docker-compose exec web py.test --cov=${COVER} --cov-report=html ${APP}
+	docker-compose exec web pytest --cov=${COVER} --cov-report=html ${APP}
 
 tdd:
-	docker-compose exec web py.test -x --pdb $(ARGS) $(APP)
+	docker-compose exec web pytest -x --pdb $(ARGS) $(APP)
 
 test_failed:
-	docker-compose exec web py.test --lf $(ARGS) $(APP)
+	docker-compose exec web pytest --lf $(ARGS) $(APP)
 
 update_docker:
 	docker-compose exec web make develop
