@@ -2,7 +2,7 @@
 
 # General test libraries
 tox==2.9.1
-pytest==3.3.0
+pytest==3.4.1
 pytest-django==3.1.2
 pytest-isort==0.1.0
 
@@ -11,35 +11,35 @@ tzlocal==1.5.1
 # Pep8 and code quality checkers
 flake8==3.5.0
 pytest-cov==2.5.1
-coverage==4.4.2
+coverage==4.5.1
 
 # Fixtures, test helpers
-factory-boy==2.9.2
+factory-boy==2.10.0
 mock==2.0.0
 
 # General dependencies
-django==2.0
+django==2.0.2
 
 # Imap utilities
 dnspython3==1.15.0
-imapclient==1.1.0
+imapclient==2.0.0
 
 # For async worker support
 celery==4.1.0
 
 # i18n/l10n,
-babel==2.5.1
+babel==2.5.3
 django-babel==0.6.2
 
 # For our REST Api
-djangorestframework==3.7.3
+djangorestframework==3.7.7
 PyJWT==1.5.3
 requests==2.18.4
 urllib3==1.22
 requests-toolbelt==0.8.0
 
 # For proper timezone support.
-pytz==2017.3
+pytz==2018.3
 
 # Charset detection
 chardet==3.0.4
@@ -49,7 +49,7 @@ sphinx==1.6.5
 sphinx_rtd_theme==0.2.4
 
 # Postgresql
-psycopg2==2.7.3.2
+psycopg2==2.7.4
 
 # Redis
 redis==2.10.6

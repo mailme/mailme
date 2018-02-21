@@ -1,14 +1,33 @@
 import imapclient
 
-# Folder name mappings, based on http://tools.ietf.org/html/rfc6154
+# Special folders, see RFC6154 - http://tools.ietf.org/html/rfc6154
 INBOX = 'inbox'
 DRAFTS = 'drafts'
-SPAM = 'spam'
+JUNK = 'spam'
 ARCHIVE = 'archive'
 SENT = 'sent'
 TRASH = 'trash'
 ALL = 'all'
 IMPORTANT = 'important'
+
+# Personal namespaces that are common among providers
+# used as a fallback when the server does not support the NAMESPACE capability
+_POPULAR_PERSONAL_NAMESPACES = ((', '), ('INBOX.', '.'))
+
+# Names of special folders that are common among providers
+POPULAR_SPECIAL_FOLDERS = {
+    SENT: ('Sent', 'Sent Items', 'Sent items', 'Sent Messages'),
+    DRAFTS: ('Drafts',),
+    ARCHIVE: ('Archive',),
+    TRASH: ('Trash', 'Deleted Items', 'Deleted Messages'),
+    JUNK: ('Junk', 'Spam', 'Junk Mail', 'Bulk Mail')
+}
+
+REVERSE_POPULAR_SPECIAL_FOLDERS = {}
+
+for key, folder_list in POPULAR_SPECIAL_FOLDERS.items():
+    for folder in folder_list:
+        REVERSE_POPULAR_SPECIAL_FOLDERS[folder] = key
 
 # System flags
 DELETED = imapclient.DELETED
@@ -27,8 +46,8 @@ DEFAULT_FOLDER_MAPPING = {
     'inbox': INBOX,
     'drafts': DRAFTS,
     'draft': DRAFTS,
-    'junk': SPAM,
-    'spam': SPAM,
+    'junk': JUNK,
+    'spam': JUNK,
     'archive': ARCHIVE,
     'sent': SENT,
     'sent items': SENT,
@@ -38,10 +57,12 @@ DEFAULT_FOLDER_MAPPING = {
 }
 
 DEFAULT_FOLDER_FLAGS = {
-    '\\Trash': 'trash',
-    '\\Sent': 'sent',
-    '\\Drafts': 'drafts',
-    '\\Junk': 'spam',
-    '\\Inbox': 'inbox',
-    '\\Spam': 'spam'
+    br'\All': ALL,
+    br'\Archive': ARCHIVE,
+    br'\Drafts': DRAFTS,
+    br'\Inbox': INBOX,
+    br'\Junk': JUNK,
+    br'\Sent': SENT,
+    br'\Spam': JUNK,
+    br'\Trash': TRASH,
 }

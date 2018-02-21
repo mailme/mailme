@@ -7,9 +7,9 @@ from imapclient import IMAPClient
 
 from .base import EmailTransport
 from mailme.constants import (
-    DEFAULT_FOLDER_FLAGS, DEFAULT_FOLDER_MAPPING, IGNORE_FOLDER_NAMES
+    DEFAULT_FOLDER_FLAGS, DEFAULT_FOLDER_MAPPING, IGNORE_FOLDER_NAMES,
+    REVERSE_POPULAR_SPECIAL_FOLDERS
 )
-from mailme.providers import get_provider_info
 from mailme.utils.uri import parse_uri
 
 
@@ -25,7 +25,6 @@ class ImapTransport(EmailTransport):
             self.uri = parse_uri(uri)
 
         self.mailbox = mailbox
-        self.provider_info = get_provider_info(mailbox.provider)
         self._client = None
         self._disable_cert_check = disable_cert_check
 
@@ -147,7 +146,6 @@ class ImapTransport(EmailTransport):
 
     def folders(self):
         """Fetch the list of folders for the account from the remote."""
-        provider_map = self.provider_info.get('folder_map', {})
         _folder_list = self.client.list_folders()
 
         retval = []
@@ -160,7 +158,7 @@ class ImapTransport(EmailTransport):
             role = DEFAULT_FOLDER_MAPPING.get(name.lower(), None)
 
             if role is None:
-                role = provider_map.get(name, None)
+                role = REVERSE_POPULAR_SPECIAL_FOLDERS.get(name, None)
 
             if role is None:
                 # Try to figure out the correct folder by looking
