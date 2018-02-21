@@ -199,12 +199,6 @@ PROVIDERS = dict([
         'imap': ('mail.messagingengine.com', 993),
         'smtp': ('mail.messagingengine.com', 587),
         'auth': 'password',
-        'folder_map': {'INBOX.Archive': 'archive',
-                       'INBOX.Drafts': 'drafts',
-                       'INBOX.Junk Mail': 'spam',
-                       'INBOX.Spam': 'spam',
-                       'INBOX.Sent': 'sent', 'INBOX.Sent Items': 'sent',
-                       'INBOX.Trash': 'trash'},
         'domains': ['fastmail.fm'],
         'mx_servers': ['in[12]-smtp.messagingengine.com'],
         # exact string matches
@@ -241,8 +235,6 @@ PROVIDERS = dict([
         'auth': 'password',
         'events': False,
         'contacts': True,
-        'folder_map': {'Sent Messages': 'sent',
-                       'Deleted Messages': 'trash'},
         'domains': ['icloud.com'],
         'mx_servers': ['mx[1-6].mail.icloud.com']
     }),
@@ -274,7 +266,6 @@ PROVIDERS = dict([
         'imap': ('imap.mail.yahoo.com', 993),
         'smtp': ('smtp.mail.yahoo.com', 587),
         'auth': 'password',
-        'folder_map': {'Bulk Mail': 'spam'},
         'domains': ['yahoo.com.ar', 'yahoo.com.au', 'yahoo.at', 'yahoo.be',
                     'yahoo.fr', 'yahoo.be', 'yahoo.nl', 'yahoo.com.br',
                     'yahoo.ca', 'yahoo.en', 'yahoo.ca', 'yahoo.fr',
@@ -417,9 +408,5 @@ PROVIDERS = dict([
     ('custom', {
         'type': 'generic',
         'auth': 'password',
-        'folder_map': {'INBOX.Archive': 'archive',
-                       'INBOX.Drafts': 'drafts', 'INBOX.Junk Mail': 'spam',
-                       'INBOX.Trash': 'trash', 'INBOX.Sent Items': 'sent',
-                       'INBOX.Sent': 'sent'},
     })
 ])

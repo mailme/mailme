@@ -176,20 +176,7 @@ class Mailbox(models.Model):
         return self.name
 
 
-class Thread(models.Model):
-    mailbox = models.ForeignKey(
-        Mailbox, related_name='threads', on_delete=models.PROTECT)
-    subject = models.CharField(max_length=256)
-
-    # TODO:
-    # * read (boolean, wether there are messages in the thread that are unread)
-    # * starred (flagged)
-    # * folders
-
-
 class Message(models.Model):
-    thread = models.ForeignKey(
-        Thread, related_name='messages', on_delete=models.PROTECT)
     folder = models.ForeignKey(
         MailboxFolder, related_name='messages', on_delete=models.PROTECT)
 
@@ -210,15 +197,9 @@ class Message(models.Model):
     # From: http://tools.ietf.org/html/rfc4130, section 5.3.3,
     # max message_id_header is 998 characters
     message_id = models.CharField(max_length=998)
-    references = JSONField(_('References'), blank=True, null=True)
 
     # Imap sync related metadata
     uid = models.BigIntegerField(db_index=True)
-
-    # TODO:
-    # * attachments
-    # * read
-    # * starred (flagged)
 
     def __str__(self):
         return self.subject
