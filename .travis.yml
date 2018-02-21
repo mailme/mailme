@@ -10,7 +10,6 @@ env:
   matrix:
   - TOXENV=codestyle
   - TOXENV=docs
-  - TOXENV=randomorder
   - TOXENV=main
 
 services:
