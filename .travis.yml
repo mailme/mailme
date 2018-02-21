@@ -9,7 +9,6 @@ addons:
 env:
   matrix:
   - TOXENV=codestyle
-  - TOXENV=docs
   - TOXENV=main
 
 services:
