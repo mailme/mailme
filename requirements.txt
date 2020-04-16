@@ -35,7 +35,7 @@ django-babel==0.6.2
 djangorestframework==3.7.7
 PyJWT==1.5.3
 requests==2.18.4
-urllib3==1.22
+urllib3==1.25.9
 requests-toolbelt==0.8.0
 
 # For proper timezone support.
