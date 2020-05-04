@@ -18,7 +18,7 @@ factory-boy==2.10.0
 mock==2.0.0
 
 # General dependencies
-django==2.0.2
+django==3.0.6
 
 # Imap utilities
 dnspython3==1.15.0
