@@ -39,7 +39,7 @@ urllib3==1.22
 requests-toolbelt==0.8.0
 
 # For proper timezone support.
-pytz==2018.3
+pytz==2021.3
 
 # Charset detection
 chardet==3.0.4
