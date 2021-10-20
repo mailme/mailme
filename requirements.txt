@@ -6,7 +6,7 @@ pytest==3.4.1
 pytest-django==3.1.2
 pytest-isort==0.1.0
 
-tzlocal==1.5.1
+tzlocal==4.0.1
 
 # Pep8 and code quality checkers
 flake8==3.5.0
