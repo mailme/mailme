@@ -28,7 +28,7 @@ imapclient==2.0.0
 celery==4.1.0
 
 # i18n/l10n,
-babel==2.5.3
+babel==2.10.0
 django-babel==0.6.2
 
 # For our REST Api
