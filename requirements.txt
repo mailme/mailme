@@ -15,7 +15,7 @@ coverage==4.5.1
 
 # Fixtures, test helpers
 factory-boy==2.10.0
-mock==2.0.0
+mock==5.0.2
 
 # General dependencies
 django==2.0.2
