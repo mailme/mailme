@@ -22,7 +22,7 @@ django==2.0.2
 
 # Imap utilities
 dnspython3==1.15.0
-imapclient==2.0.0
+imapclient==3.0.1
 
 # For async worker support
 celery==4.1.0
