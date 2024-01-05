@@ -9,7 +9,7 @@ pytest-isort==0.1.0
 tzlocal==1.5.1
 
 # Pep8 and code quality checkers
-flake8==3.5.0
+flake8==7.0.0
 pytest-cov==2.5.1
 coverage==4.5.1
 
