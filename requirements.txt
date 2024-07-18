@@ -45,7 +45,7 @@ pytz==2018.3
 chardet==3.0.4
 
 # Docs requirements
-sphinx==1.7.0
+sphinx==7.4.6
 sphinx_rtd_theme==0.2.4
 
 # Postgresql
